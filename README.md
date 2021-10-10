@@ -14,6 +14,9 @@ Count matrices are available here: pending
 
 ## R scripts
 AirwayOrgnoid_script.R describes the pipeline used for the single-cell transcriptome analysis.
-https://github.com/chenghongsheng/SC_RNAseq-airway-organoid/blob/main/Comparison-to-public-RNAseq-datasets_script.R describes the pipeline used to compare the functional enrichment findings of the SC-RNAseq data with bulk RNAseq datasets from public depository, namely 
+
+Comparison-to-public-RNAseq-datasets_script.R describes the pipeline used to compare the functional enrichment findings of the sc-RNAseq to bulk RNAseq datasets from public depository, including GSE124180, GSE162154 and GSE146532, as well as in-house datasets.
+
+
 
 
