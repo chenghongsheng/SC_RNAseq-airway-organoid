@@ -4,10 +4,12 @@ This project contains the R scripts of single-cell transcriptomic analysis of ai
 
 ## Manuscript
 Title: The establishment of COPD organoids to study host-pathogen interaction reveals enhanced viral fitness of SARS-CoV-2 in bronchi
+
 Link: pending
 
 ## Data
 Raw sequencing data is available here: pending
+
 Count matrices are available here: pending
 
 ## R scripts
