@@ -8,9 +8,7 @@ Title: The establishment of COPD organoids to study host-pathogen interaction re
 Link: pending
 
 ## Data
-Raw sequencing data is available here: pending
-
-Count matrices are available here: pending
+Sequencing data is available here: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE186017
 
 ## R scripts
 AirwayOrganoid_script.R describes the pipeline used for the single-cell transcriptome analysis.
