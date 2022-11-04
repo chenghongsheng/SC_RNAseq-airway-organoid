@@ -1,0 +1,13 @@
+SampleID,Sample_Details,Treatment,Pseudomonas_Infection,Timepoint,PatientID,Fastq_filename1,Fastq_filename2
+NRMK4,NPO-COPD,COPD_ctrl,No,6 hpi,SC1,NRMK4_S1_R1_001.fastq.gz,NRMK4_S1_R2_001.fastq.gz
+NRMK5,NPO-COPD,COPD_ctrl,No,6 hpi,SC2,NRMK5_S2_R1_001.fastq.gz,NRMK5_S2_R2_001.fastq.gz
+NRMK6,NPO-COPD,COPD_ctrl,No,6 hpi,SC3,NRMK6_S3_R1_001.fastq.gz,NRMK6_S3_R2_001.fastq.gz
+NRMK10,NPO-HC,HC_ctrl,No,6 hpi,LKC1,NRMK10_S7_R1_001.fastq.gz,NRMK10_S7_R2_001.fastq.gz
+NRMK11,NPO-HC,HC_ctrl,No,6 hpi,LKC5,NRMK11_S8_R1_001.fastq.gz,NRMK11_S8_R2_001.fastq.gz
+NRMK12,NPO-HC,HC_ctrl,No,6 hpi,LKC6,NRMK12_S9_R1_001.fastq.gz,NRMK12_S9_R2_001.fastq.gz
+NRPA4,NPO-COPD,COPD_Pseudo,Yes,6 hpi,SC1,NRPA4_S4_R1_001.fastq.gz,NRPA4_S4_R2_001.fastq.gz
+NRPA5,NPO-COPD,COPD_Pseudo,Yes,6 hpi,SC2,NRPA5_S5_R1_001.fastq.gz,NRPA5_S5_R2_001.fastq.gz
+NRPA6,NPO-COPD,COPD_Pseudo,Yes,6 hpi,SC3,NRPA6_S6_R1_001.fastq.gz,NRPA6_S6_R2_001.fastq.gz
+NRPA10,NPO-HC,HC_Pseudo,Yes,6 hpi,LKC1,NRPA10_S10_R1_001.fastq.gz,NRPA10_S10_R2_001.fastq.gz
+NRPA11,NPO-HC,HC_Pseudo,Yes,6 hpi,LKC5,NRPA11_S11_R1_001.fastq.gz,NRPA11_S11_R2_001.fastq.gz
+NRPA12,NPO-HC,HC_Pseudo,Yes,6 hpi,LKC6,NRPA12_S12_R1_001.fastq.gz,NRPA12_S12_R2_001.fastq.gz
