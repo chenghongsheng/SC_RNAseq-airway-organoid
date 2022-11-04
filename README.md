@@ -1,4 +1,4 @@
-# SC-RNAseq and Bulk RNAseq of COPD airway organoid
+# scRNAseq and Bulk RNAseq of COPD airway organoid
 
 This project contains the R scripts of single-cell and bulk transcriptomic analysis of airway organoids derived from healthy and chronic obstructive pulmonary disease (COPD) patients. The manuscript <The establishment of COPD organoids to study host-pathogen interaction reveals enhanced viral fitness of SARS-CoV-2 in bronchi> has been accepted in-principle by Nature Communications.
 
