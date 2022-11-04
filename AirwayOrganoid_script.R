@@ -661,3 +661,494 @@ write.csv(Cilia_COPDvH.sig,file="Cilia_COPDvH.sig.csv")
 write.csv(COPDvH.sig,file="COPDvH.sig.csv")
 
 saveRDS(lung.combined.sct,file='lung.combined.sct.RDS')
+
+####### Analysis for reivsion ########
+lung.combined.sct<-readRDS("./lung.combined.sct.RDS")
+
+library(RColorBrewer)
+col<-c('#680956',"#F03B20","#F07620","#DA8F00","#FFFA2F","#DAD400","#18B146","#007122","#273FA3")
+pie(rep(1,9),col = col)
+
+Idents(lung.combined.sct)<-lung.combined.sct$annotated_res0.3
+
+p1 <- DimPlot(lung.combined.sct, reduction = "umap", split.by = "orig.ident",label = F,repel = TRUE,ncol=2,pt.size = 1)
+p1 <- p1+scale_color_manual(values = col)
+
+tiff('UMAP_res0.3_splitbyorganoid_unlabel.tiff',width=4500,height=4000,units='px',res=300,compression='lzw')
+p1
+dev.off()
+
+#identify percentage of each subpopulation
+Idents(lung.combined.sct)<-lung.combined.sct$annotated_res0.3
+lung.combined.sct_split<-SplitObject(lung.combined.sct,split.by = "orig.ident")
+
+SCNPO1_count<-as.data.frame(summary(lung.combined.sct_split$SCNPO1@active.ident))
+colnames(SCNPO1_count)<-c("SCNPO1_count")
+SCNPO1_count$SCNPO1_percentage<-c(round(SCNPO1_count$SCNPO1_count*100/sum(SCNPO1_count$SCNPO1_count),2))
+
+SCNPO2_count<-as.data.frame(summary(lung.combined.sct_split$SCNPO2@active.ident))
+colnames(SCNPO2_count)<-c("SCNPO2_count")
+SCNPO2_count$SCNPO2_percentage<-c(round(SCNPO2_count$SCNPO2_count*100/sum(SCNPO2_count$SCNPO2_count),2))
+
+SCBO1_count<-as.data.frame(summary(lung.combined.sct_split$SCBO1@active.ident))
+colnames(SCBO1_count)<-c("SCBO1_count")
+SCBO1_count$SCBO1_percentage<-c(round(SCBO1_count$SCBO1_count*100/sum(SCBO1_count$SCBO1_count),2))
+
+SCBO2_count<-as.data.frame(summary(lung.combined.sct_split$SCBO2@active.ident))
+colnames(SCBO2_count)<-c("SCBO2_count")
+SCBO2_count$SCBO2_percentage<-c(round(SCBO2_count$SCBO2_count*100/sum(SCBO2_count$SCBO2_count),2))
+
+comb_count<-cbind(SCNPO1_count,SCNPO2_count,SCBO1_count,SCBO2_count)
+comb_count$cluster<-rownames(comb_count)
+comb_count<-comb_count[,c(2,4,6,8,9)]
+colnames(comb_count)<-c("SCNPO1","SCNPO2",'SCBO1','SCBO2','cluster')
+comb_count$cluster<-factor(comb_count$cluster,levels=c("Epithelial cells","Cycling basal cells","Basal cells 1",'Basal cells 2',
+                                                       "Club cells 1",'Club cells 2',"Goblet cells 1",'Goblet cells 2','Ciliated epithelial cells'))
+comb_count<-comb_count%>%gather(Group,Percentage,1:4)
+
+comb_count$Group<-factor(comb_count$Group,levels=c("SCNPO1","SCNPO2",'SCBO1','SCBO2'))
+
+#barplot
+abundance<-ggplot(comb_count,aes(fill=cluster,y=Percentage,x=Group))+
+  geom_bar(position=position_fill(reverse = T), stat = 'identity',size=0.1)+
+  scale_fill_manual(values=c(col))+
+  guides(fill=guide_legend(reverse=T))+
+  theme(text = element_text(size=15),axis.text.x = element_text(angle=45,hjust=1),
+        panel.background = element_blank(),
+        panel.border = element_blank(),
+        axis.line=element_line(size=1,color="black"))+
+  xlab("Groups")+
+  ylab("Abundance (%)")
+
+tiff('abundance_splitbyorig.tiff',width=2000,height=2000,units='px',res=300,compression='lzw')
+abundance
+dev.off()
+
+###compare to Suppl. Fig 2#####
+lung.combined.sct$cluster.group2<-paste(lung.combined.sct$annotated_res0.3,lung.combined.sct$orig.ident,sep="_")
+lung.combined.sct$cluster.group2<-factor(lung.combined.sct$cluster.group2,
+                                         levels=c("Cycling basal cells_SCNPO1","Cycling basal cells_SCNPO2",
+                                                  "Cycling basal cells_SCBO1","Cycling basal cells_SCBO2",
+                                                  "Basal cells 1_SCNPO1","Basal cells 1_SCNPO2",
+                                                  "Basal cells 1_SCBO1","Basal cells 1_SCBO2",
+                                                  "Basal cells 2_SCNPO1","Basal cells 2_SCNPO2",
+                                                  "Basal cells 2_SCBO1","Basal cells 2_SCBO2",
+                                                  "Club cells 1_SCNPO1","Club cells 1_SCNPO2",
+                                                  "Club cells 1_SCBO1","Club cells 1_SCBO2",
+                                                  "Club cells 2_SCNPO1","Club cells 2_SCNPO2",
+                                                  "Club cells 2_SCBO1","Club cells 2_SCBO2",
+                                                  "Goblet cells 1_SCNPO1","Goblet cells 1_SCNPO2",
+                                                  "Goblet cells 1_SCBO1","Goblet cells 1_SCBO2",
+                                                  "Goblet cells 2_SCNPO1","Goblet cells 2_SCNPO2",
+                                                  "Goblet cells 2_SCBO1","Goblet cells 2_SCBO2",
+                                                  "Ciliated epithelial cells_SCNPO1","Ciliated epithelial cells_SCNPO2",
+                                                  "Ciliated epithelial cells_SCBO1","Ciliated epithelial cells_SCBO2",
+                                                  "Epithelial cells_SCNPO1","Epithelial cells_SCNPO2",
+                                                  "Epithelial cells_SCBO1","Epithelial cells_SCBO2"
+                                         ))
+
+Idents(lung.combined.sct)<-lung.combined.sct$cluster.group2
+
+vln_col<-rep(c("#00BFC4","#C77CFF","#F8766D","#7CAE00"),9)
+
+#####TP63######
+vln_TP63<-VlnPlot(lung.combined.sct,features = "TP63",log=T) +
+  stat_summary(fun.y = median,geom='point', size = 3, colour = "red")
+
+vln_TP63<-vln_TP63 + scale_fill_manual(values = vln_col)
+
+tiff('vln_TP63.tiff',width=6000,height=3000,units='px',res=300,compression='lzw')
+vln_TP63
+dev.off()
+
+
+####SCGB1A#####
+vln_SCGB1A1<-VlnPlot(lung.combined.sct,features = "SCGB1A1",log=T) +
+  stat_summary(fun.y = median,geom='point', size = 3, colour = "red")
+
+vln_SCGB1A1<-vln_SCGB1A1 + scale_fill_manual(values = vln_col)
+
+tiff('vln_SCGB1A1.tiff',width=6000,height=3000,units='px',res=300,compression='lzw')
+vln_SCGB1A1
+dev.off()
+
+
+####SCGB1A#####
+vln_FOXJ1<-VlnPlot(lung.combined.sct,features = "FOXJ1",log=T) +
+  stat_summary(fun.y = median,geom='point', size = 3, colour = "red")
+
+vln_FOXJ1<-vln_FOXJ1 + scale_fill_manual(values = vln_col)
+
+tiff('vln_FOXJ1.tiff',width=6000,height=3000,units='px',res=300,compression='lzw')
+vln_FOXJ1
+dev.off()
+
+###compare to Suppl. Fig 2##### alternative #######
+library(ggridges)
+Idents(lung.combined.sct)<-lung.combined.sct$annotated_res0.3
+
+RP_CBC<-RidgePlot(subset(lung.combined.sct,idents="Cycling basal cells"), 
+                  features = c("TP63","SCGB1A1",'FOXJ1'),stack = T,group.by = "orig.ident",log=T,fill.by = "ident")
+RP_CBC<-RP_CBC &
+  stat_density_ridges(quantile_lines = T, 
+                      quantiles=2,size = 1, scale=4, colour = "black",alpha=0.5)
+tiff('RP_CBC.tiff',width=6000,height=2000,units='px',res=300,compression='lzw')
+RP_CBC
+dev.off()
+
+
+
+RP_BC1<-RidgePlot(subset(lung.combined.sct,idents="Basal cells 1"), 
+                  features = c("TP63","SCGB1A1",'FOXJ1'),stack = T,group.by = "orig.ident",log=T,fill.by = "ident")
+RP_BC1<-RP_BC1 &
+  stat_density_ridges(quantile_lines = T, 
+                      quantiles=2,size = 1, scale=4, colour = "black",alpha=0.5)
+tiff('RP_BC1.tiff',width=6000,height=2000,units='px',res=300,compression='lzw')
+RP_BC1
+dev.off()
+
+
+
+RP_BC2<-RidgePlot(subset(lung.combined.sct,idents="Basal cells 2"), 
+                  features = c("TP63","SCGB1A1",'FOXJ1'),stack = T,group.by = "orig.ident",log=T,fill.by = "ident")
+RP_BC2<-RP_BC2 &
+  stat_density_ridges(quantile_lines = T, 
+                      quantiles=2,size = 1, scale=4, colour = "black",alpha=0.5)
+tiff('RP_BC2.tiff',width=6000,height=2000,units='px',res=300,compression='lzw')
+RP_BC2
+dev.off()
+
+
+RP_CC1<-RidgePlot(subset(lung.combined.sct,idents="Club cells 1"), 
+                  features = c("TP63","SCGB1A1",'FOXJ1'),stack = T,group.by = "orig.ident",log=T,fill.by = "ident")
+RP_CC1<-RP_CC1 &
+  stat_density_ridges(quantile_lines = T, 
+                      quantiles=2,size = 1, scale=4, colour = "black",alpha=0.5)
+tiff('RP_CC1.tiff',width=6000,height=2000,units='px',res=300,compression='lzw')
+RP_CC1
+dev.off()
+
+
+RP_CC2<-RidgePlot(subset(lung.combined.sct,idents="Club cells 2"), 
+                  features = c("TP63","SCGB1A1",'FOXJ1'),stack = T,group.by = "orig.ident",log=T,fill.by = "ident")
+RP_CC2<-RP_CC2 &
+  stat_density_ridges(quantile_lines = T, 
+                      quantiles=2,size = 1, scale=4, colour = "black",alpha=0.5)
+tiff('RP_CC2.tiff',width=6000,height=2000,units='px',res=300,compression='lzw')
+RP_CC2
+dev.off()
+
+
+
+RP_GC1<-RidgePlot(subset(lung.combined.sct,idents="Goblet cells 1"), 
+                  features = c("TP63","SCGB1A1",'FOXJ1'),stack = T,group.by = "orig.ident",log=T,fill.by = "ident")
+RP_GC1<-RP_GC1 &
+  stat_density_ridges(quantile_lines = T, 
+                      quantiles=2,size = 1, scale=4, colour = "black",alpha=0.5)
+tiff('RP_GC1.tiff',width=6000,height=2000,units='px',res=300,compression='lzw')
+RP_GC1
+dev.off()
+
+
+
+RP_GC2<-RidgePlot(subset(lung.combined.sct,idents="Goblet cells 2"), 
+                  features = c("TP63","SCGB1A1",'FOXJ1'),stack = T,group.by = "orig.ident",log=T,fill.by = "ident")
+RP_GC2<-RP_GC2 &
+  stat_density_ridges(quantile_lines = T, 
+                      quantiles=2,size = 1, scale=4, colour = "black",alpha=0.5)
+tiff('RP_GC2.tiff',width=6000,height=2000,units='px',res=300,compression='lzw')
+RP_GC2
+dev.off()
+
+
+RP_CEC<-RidgePlot(subset(lung.combined.sct,idents="Ciliated epithelial cells"), 
+                  features = c("TP63","SCGB1A1",'FOXJ1'),stack = T,group.by = "orig.ident",log=T,fill.by = "ident")
+RP_CEC<-RP_CEC &
+  stat_density_ridges(quantile_lines = T, 
+                      quantiles=2,size = 1, scale=4, colour = "black",alpha=0.5)
+tiff('RP_CEC.tiff',width=6000,height=2000,units='px',res=300,compression='lzw')
+RP_CEC
+dev.off()
+
+######SARS-COV2 entry#############
+Idents(lung.combined.sct)<-lung.combined.sct$annotated_res0.3
+
+lung.combined.sct <- lung.combined.sct %>% 
+  mutate(ACE2 = case_when(GetAssayData(lung.combined.sct)["ACE2",]>0 ~ "ACE2+",
+                          GetAssayData(lung.combined.sct)["ACE2",]==0 ~ "ACE2-"))
+Idents(lung.combined.sct)<-lung.combined.sct$ACE2
+ACE2_dim<-DimPlot(lung.combined.sct,pt.size = 2) & scale_color_manual(values = c("gray87","red"))
+ACE2_dim$data<-ACE2_dim$data[order(ACE2_dim$data$ident),]
+ACE2_dim
+
+lung.combined.sct <- lung.combined.sct %>% 
+  mutate(TMPRSS2 = case_when(GetAssayData(lung.combined.sct)["TMPRSS2",]>0 ~ "TMPRSS2+",
+                             GetAssayData(lung.combined.sct)["TMPRSS2",]==0 ~ "TMPRSS2-"))
+Idents(lung.combined.sct)<-lung.combined.sct$TMPRSS2
+TMPRSS2_dim<-DimPlot(lung.combined.sct,pt.size = 2) & scale_color_manual(values = c("gray87","#5EDD5E"))
+TMPRSS2_dim$data<-TMPRSS2_dim$data[order(TMPRSS2_dim$data$ident),]
+TMPRSS2_dim
+
+lung.combined.sct <- lung.combined.sct %>% #FF5900
+  mutate(FURIN = case_when(GetAssayData(lung.combined.sct)["FURIN",]>0 ~ "FURIN+",
+                           GetAssayData(lung.combined.sct)["FURIN",]==0 ~ "FURIN-"))
+Idents(lung.combined.sct)<-lung.combined.sct$FURIN
+FURIN_dim<-DimPlot(lung.combined.sct,pt.size = 2) & scale_color_manual(values = c("gray87","#FFAA00"))
+FURIN_dim$data<-FURIN_dim$data[order(FURIN_dim$data$ident),]
+FURIN_dim
+
+lung.combined.sct <- lung.combined.sct %>% 
+  mutate(NRP1 = case_when(GetAssayData(lung.combined.sct)["NRP1",]>0 ~ "NRP1+",
+                          GetAssayData(lung.combined.sct)["NRP1",]==0 ~ "NRP1-"))
+Idents(lung.combined.sct)<-lung.combined.sct$NRP1
+NRP1_dim<-DimPlot(lung.combined.sct,pt.size = 2) & scale_color_manual(values = c("gray87","Skyblue"))
+NRP1_dim$data<-NRP1_dim$data[order(NRP1_dim$data$ident),]
+NRP1_dim
+
+tiff('ACE2_dim.tiff',width=3000,height=3000,units='px',res=300,compression='lzw')
+ACE2_dim
+dev.off()
+
+tiff('TMPRSS2_dim.tiff',width=3000,height=3000,units='px',res=300,compression='lzw')
+TMPRSS2_dim
+dev.off()
+
+tiff('FURIN_dim.tiff',width=3000,height=3000,units='px',res=300,compression='lzw')
+FURIN_dim
+dev.off()
+
+tiff('NRP1_dim.tiff',width=3000,height=3000,units='px',res=300,compression='lzw')
+NRP1_dim
+dev.off()
+
+#####overlay#####
+lung.combined.sct <- lung.combined.sct %>% #"ACE2","TMPRSS2",'FURIN','NRP1'
+  mutate(COVID = case_when(GetAssayData(lung.combined.sct)["ACE2",]>0 ~ "ACE2+",
+                           GetAssayData(lung.combined.sct)["TMPRSS2",]>0 & GetAssayData(lung.combined.sct)["NRP1",]>0 & GetAssayData(lung.combined.sct)["FURIN",]>0 ~ "TMPRSS2+/NRP1+/FURIN+",
+                           GetAssayData(lung.combined.sct)["NRP1",]>0 & GetAssayData(lung.combined.sct)["FURIN",]>0 ~ "NRP+/FURIN+",
+                           GetAssayData(lung.combined.sct)["TMPRSS2",]>0 ~ "TMPRSS2+"))
+lung.combined.sct$COVID<-replace_na(lung.combined.sct$COVID,"NA")
+lung.combined.sct$COVID<-factor(lung.combined.sct$COVID,
+                                levels=c('NA','TMPRSS2+','NRP+/FURIN+','ACE2+','TMPRSS2+/NRP1+/FURIN+'))
+
+
+Idents(lung.combined.sct)<-lung.combined.sct$COVID
+Covid_dim<-DimPlot(lung.combined.sct,pt.size = 2,split.by = "orig.ident",ncol=2) + 
+  scale_color_manual(values = c('#eaeaea',"#5EDD5E",'#AA7CD5',"#FF6C6C","Black"))
+
+Covid_dim$data<-Covid_dim$data[order(Covid_dim$data$ident),]
+Covid_dim
+
+tiff('Covid_dim.tiff',width=3500,height=3000,units='px',res=300,compression='lzw')
+Covid_dim
+dev.off()
+
+#####Covid abundance######
+lung.combined.sct_split<-SplitObject(lung.combined.sct,split.by = "orig.ident")
+
+SCNPO1_count<-as.data.frame(summary(lung.combined.sct_split$SCNPO1@active.ident))
+colnames(SCNPO1_count)<-c("SCNPO1_count")
+SCNPO1_count$SCNPO1_percentage<-c(round(SCNPO1_count$SCNPO1_count*100/sum(SCNPO1_count$SCNPO1_count),2))
+
+SCNPO2_count<-as.data.frame(summary(lung.combined.sct_split$SCNPO2@active.ident))
+colnames(SCNPO2_count)<-c("SCNPO2_count")
+SCNPO2_count$SCNPO2_percentage<-c(round(SCNPO2_count$SCNPO2_count*100/sum(SCNPO2_count$SCNPO2_count),2))
+
+SCBO1_count<-as.data.frame(summary(lung.combined.sct_split$SCBO1@active.ident))
+colnames(SCBO1_count)<-c("SCBO1_count")
+SCBO1_count$SCBO1_percentage<-c(round(SCBO1_count$SCBO1_count*100/sum(SCBO1_count$SCBO1_count),2))
+
+SCBO2_count<-as.data.frame(summary(lung.combined.sct_split$SCBO2@active.ident))
+colnames(SCBO2_count)<-c("SCBO2_count")
+SCBO2_count$SCBO2_percentage<-c(round(SCBO2_count$SCBO2_count*100/sum(SCBO2_count$SCBO2_count),2))
+
+comb_count<-cbind(SCNPO1_count,SCNPO2_count,SCBO1_count,SCBO2_count)
+comb_count$cluster<-rownames(comb_count)
+comb_count<-comb_count[,c(2,4,6,8,9)]
+colnames(comb_count)<-c("SCNPO1","SCNPO2",'SCBO1','SCBO2','cluster')
+comb_count$cluster<-factor(comb_count$cluster,
+                           levels=c('ACE2+','TMPRSS2+','NRP+/FURIN+','TMPRSS2+/NRP1+/FURIN+','NA'))
+comb_count<-comb_count[-1,]
+
+comb_count<-comb_count%>%gather(Group,Percentage,1:4)
+
+comb_count$Group<-factor(comb_count$Group,levels=c("SCNPO1","SCNPO2",'SCBO1','SCBO2'))
+
+
+#barplot
+abundance<-ggplot(comb_count,aes(fill=cluster,y=Percentage,x=Group))+
+  geom_bar(position = position_stack(reverse=T), stat = 'identity',size=0.1)+
+  scale_fill_manual(values=c("#FF6C6C","#5EDD5E",'#AA7CD5',"Black"))+
+  guides(fill=guide_legend(reverse=T))+
+  theme(text = element_text(size=15),axis.text.x = element_text(angle=45,hjust=1),
+        panel.background = element_blank(),
+        panel.border = element_blank(),
+        axis.line=element_line(size=1,color="black"))+
+  xlab("Groups")+
+  ylab("Abundance (%)")
+
+tiff('abundance_covidgene.tiff',width=2000,height=2000,units='px',res=300,compression='lzw')
+abundance
+dev.off()
+
+
+###########Basal 1 vs 2 ##########
+Basal2to1 <- FindMarkers(lung.combined.sct, ident.1 = "Basal cells 2", ident.2 = "Basal cells 1",
+                         verbose = T)
+Basal2to1.sig<-Basal2to1[(Basal2to1$p_val_adj<0.05 & abs(Basal2to1$avg_log2FC)>1),]
+
+Basal2to1_GSEA<-Basal2to1
+Basal2to1_GSEA[Basal2to1_GSEA=="Inf"]<-max(Basal2to1_GSEA$avg_log2FC[!Basal2to1_GSEA$avg_log2FC=="Inf"])
+Basal2to1_GSEA[Basal2to1_GSEA=="-Inf"]<-min(Basal2to1_GSEA$avg_log2FC[!Basal2to1_GSEA$avg_log2FC=="-Inf"])
+Basal2to1_GSEA<-Basal2to1_GSEA[order(Basal2to1_GSEA$avg_log2FC,decreasing = T),]
+Basal2to1_GSEA<-Basal2to1_GSEA[,2,drop=F]
+
+write.table(Basal2to1.sig,file="Basal2to1.sig.txt")
+write.table(Basal2to1_GSEA,file="Basal2to1_GSEA.txt")
+
+###########Club 1 vs 2 ##########
+Club2to1 <- FindMarkers(lung.combined.sct, ident.1 = "Club cells 2", ident.2 = "Club cells 1",
+                        verbose = T)
+Club2to1.sig<-Club2to1[(Club2to1$p_val_adj<0.05 & abs(Club2to1$avg_log2FC)>1),]
+
+Club2to1_GSEA<-Club2to1
+Club2to1_GSEA[Club2to1_GSEA=="Inf"]<-max(Club2to1_GSEA$avg_log2FC[!Club2to1_GSEA$avg_log2FC=="Inf"])
+Club2to1_GSEA[Club2to1_GSEA=="-Inf"]<-min(Club2to1_GSEA$avg_log2FC[!Club2to1_GSEA$avg_log2FC=="-Inf"])
+Club2to1_GSEA<-Club2to1_GSEA[order(Club2to1_GSEA$avg_log2FC,decreasing = T),]
+Club2to1_GSEA<-Club2to1_GSEA[,2,drop=F]
+
+write.table(Club2to1.sig,file="Club2to1.sig.txt")
+write.table(Club2to1_GSEA,file="Club2to1_GSEA.txt")
+
+###########Goblet 1 vs 2 ##########
+Goblet2to1 <- FindMarkers(lung.combined.sct, ident.1 = "Goblet cells 2", ident.2 = "Goblet cells 1",
+                          verbose = T)
+Goblet2to1.sig<-Goblet2to1[(Goblet2to1$p_val_adj<0.05 & abs(Goblet2to1$avg_log2FC)>1),]
+
+Goblet2to1_GSEA<-Goblet2to1
+Goblet2to1_GSEA[Goblet2to1_GSEA=="Inf"]<-max(Goblet2to1_GSEA$avg_log2FC[!Goblet2to1_GSEA$avg_log2FC=="Inf"])
+Goblet2to1_GSEA[Goblet2to1_GSEA=="-Inf"]<-min(Goblet2to1_GSEA$avg_log2FC[!Goblet2to1_GSEA$avg_log2FC=="-Inf"])
+Goblet2to1_GSEA<-Goblet2to1_GSEA[order(Goblet2to1_GSEA$avg_log2FC,decreasing = T),]
+Goblet2to1_GSEA<-Goblet2to1_GSEA[,2,drop=F]
+
+write.table(Goblet2to1.sig,file="Goblet2to1.sig.txt")
+write.table(Goblet2to1_GSEA,file="Goblet2to1_GSEA.txt")
+
+saveRDS(lung.combined.sct,file='lung.combined.sct.RDS')
+
+
+###########TF expression ##########
+TF<-c("TP63","SOX9",'NOTCH1','NOTCH3','HES1','KLF3', #basal-like TF
+      "SOX2",'NOTCH2','NKX3-1','SPDEF','CREB3L1','XBP1', #Secretory preparation TFs
+      'MESP1','FOXA3','SCGB1A1','MUC5B','MUC5AC') #Specialization TFs
+
+lin1<-subset(lung.combined.sct,idents=c("Cycling basal cells",'Basal cells 1','Club cells 1','Goblet cells 1'))
+lin1<-subset(lin1,features=TF)
+
+lin2<-subset(lung.combined.sct,idents=c("Cycling basal cells",'Basal cells 2','Club cells 2','Goblet cells 2'))
+lin2<-subset(lin2,features=TF)
+
+mat1<-as.data.frame(t(as.matrix(lin1@assays$RNA@data)))
+mat1$Pseudotime<-as.vector(lin1$Pseudotime)
+mat1$lin<-1
+
+mat2<-as.data.frame(t(as.matrix(lin2@assays$RNA@data)))
+mat2$Pseudotime<-as.vector(lin2$Pseudotime)
+mat2$lin<-2
+
+celltype<-c(as.vector(lin1$annotated_res0.3),as.vector(lin2$annotated_res0.3))
+
+mat<-rbind(mat1,mat2)
+mat$lin<-factor(mat$lin)
+mat$celltype<-celltype
+
+mat_norm<-mat
+mat_norm<-mat_norm[,-c(18,19)]
+
+for(i in 1:ncol(mat_norm)) {       # for-loop over columns
+  mat_norm[ , i] <- (mat_norm[ , i] - min(mat_norm[ , i]))/(max(mat_norm[ , i])-(min(mat_norm[ , i])))
+}
+
+mat_norm$Pseudotime<-mat$Pseudotime
+mat_norm$lin<-mat$lin
+
+##### check each gene expression
+for(i in 1:17) {       # for-loop over columns
+  print(ggplot(mat_norm,aes(x=Pseudotime,y=mat_norm[,i]))+
+          geom_smooth(method = loess,se=F,aes(colour=lin))+
+          theme_minimal())
+}
+
+#basal "TP63"
+#club 'NOTCH1' 'NOTCH3',"SOX2"
+#gob "SOX9",'HES1','KLF3''NOTCH2''NKX3-1''SPDEF''CREB3L1''XBP1''MESP1''FOXA3'
+#mucus secreting 'SCGB1A1','MUC5B','MUC5AC'
+
+mat_norm_basal<-mat_norm[,c(1,18,19)]
+
+basal_TF<-ggplot(mat_norm_basal,aes(x=Pseudotime,y=TP63))+
+  geom_smooth(method = loess,se=F,colour="red",size=5)+
+  facet_wrap(~lin,ncol=2)+
+  xlim(5,30)+
+  theme_minimal()
+
+mat_norm_secretory<-mat_norm[,c(3,4,7,18,19)]
+mat_norm_secretory<-mat_norm_secretory%>%gather(Genes,Expres,1:3)
+
+secretory_TF<-ggplot(mat_norm_secretory,aes(x=Pseudotime,y=Expres))+
+  geom_smooth(method = loess,se=F,aes(colour=Genes),size=5)+
+  facet_wrap(~lin,ncol=2)+
+  scale_color_manual(values=c('#CA6100','#FF7F09','#FFB067'))+
+  xlim(5,30)+
+  scale_y_continuous(breaks = seq(0, 0.15, by = 0.05))+
+  coord_cartesian(ylim=c(0,0.15))+
+  theme_minimal()
+
+mat_norm_goblet<-mat_norm[,c(11,12,13,14,18,19)]
+mat_norm_goblet<-mat_norm_goblet%>%gather(Genes,Expres,1:4)
+
+goblet_TF<-ggplot(mat_norm_goblet,aes(x=Pseudotime,y=Expres))+
+  geom_smooth(method = loess,se=F,aes(colour=Genes),size=5)+
+  facet_wrap(~lin,ncol=2)+
+  scale_color_manual(values=c('#92F110','#0EDD0E','#1589C0','#2053C7'))+
+  xlim(5,30)+
+  coord_cartesian(ylim=c(0,0.2))+
+  theme_minimal()
+
+mat_norm_mucus<-mat_norm[,c(15:19)]
+mat_norm_mucus<-mat_norm_mucus%>%gather(Genes,Expres,1:3)
+
+mucus_gene<-ggplot(mat_norm_mucus,aes(x=Pseudotime,y=Expres))+
+  geom_smooth(method = loess,se=F,aes(colour=Genes),size=5)+
+  facet_wrap(~lin,ncol=2)+
+  scale_color_manual(values=c('#EEBAFD','#B92BE1','#56006E'))+
+  xlim(5,30)+
+  theme_minimal()
+
+
+tiff('basal_TF.tiff',width=3500,height=2000,units='px',res=300,compression='lzw')
+basal_TF
+dev.off()
+
+tiff('secretory_TF.tiff',width=3500,height=2000,units='px',res=300,compression='lzw')
+secretory_TF
+dev.off()
+
+tiff('goblet_TF.tiff',width=3500,height=2000,units='px',res=300,compression='lzw')
+goblet_TF
+dev.off()
+
+tiff('mucus_gene.tiff',width=3500,height=2000,units='px',res=300,compression='lzw')
+mucus_gene
+dev.off()
+
+tiff('lin1.PT.tiff',width=2500,height=2000,units='px',res=300,compression='lzw')
+FeaturePlot(lin1, c("Pseudotime"), pt.size = 0.5) & 
+  scale_color_viridis(option="plasma")
+dev.off()
+
+
+tiff('lin2.PT.tiff',width=2500,height=2000,units='px',res=300,compression='lzw')
+FeaturePlot(lin2, c("Pseudotime"), pt.size = 0.5) & 
+  scale_color_viridis(option="plasma")
+dev.off()
